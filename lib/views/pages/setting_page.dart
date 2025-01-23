@@ -17,11 +17,10 @@ class SettingsPage extends StatelessWidget {
           ),
         ),
         backgroundColor: Colors.white,
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false,
       ),
       body: ListView(
         children: [
-      
           _buildSettingTile(
             context,
             icon: Icons.person,
@@ -30,52 +29,30 @@ class SettingsPage extends StatelessWidget {
               Get.toNamed('profile-page');
             },
           ),
-      
-          _buildSettingTile(
-            context,
-            icon: Icons.announcement,
-            title: 'Announcement Details',
-            onTap: () {
-          
-            },
-          ),
-         
           _buildSettingTile(
             context,
             icon: Icons.settings,
             title: 'General Settings',
             onTap: () {
-             
+              Get.toNamed('generalsettings-page');
             },
           ),
-       
           _buildSettingTile(
             context,
             icon: Icons.security,
             title: 'Privacy Settings',
             onTap: () {
-             
+              Get.toNamed('privacysettings-page');
             },
           ),
-      
-          _buildSettingTile(
-            context,
-            icon: Icons.notifications,
-            title: 'Notification Settings',
-            onTap: () {
-           
-            },
-          ),
-        
           _buildSettingTile(
             context,
             icon: Icons.help_outline,
             title: 'Help and About',
             onTap: () {
-         
+              Get.toNamed('helpabout-page');
             },
           ),
-    
           _buildSettingTile(
             context,
             icon: Icons.logout,
@@ -88,7 +65,6 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildSettingTile(BuildContext context,
       {required IconData icon,
