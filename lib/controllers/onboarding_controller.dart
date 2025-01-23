@@ -9,25 +9,28 @@ class OnboardingController extends GetxController {
   final PageController pageController = PageController();
   final box = GetStorage();
   int currentPage = 0;
-  bool _isNavigating = false; 
+  bool _isNavigating = false;
 
   final List<OnboardingContent> onboardingData = [
     OnboardingContent(
       imagePath: 'assets/images/first.png',
-      title: 'Become a Force for Good with Abugida',
-      description: 'Join Us in Changing Lives and making a smile :)',
+      title: 'Welcome to Digital Ekub',
+      description:
+          'Join Digital Ekub and transform the way you save and grow together.',
     ),
     OnboardingContent(
-      imagePath: 'https://lottie.host/9551618d-b30d-4977-b5b1-b583b8e042e9/16w0pk9k1I.json',
-      title: 'Save ,Contribute and improve yourself',
+      imagePath:
+          'https://lottie.host/9551618d-b30d-4977-b5b1-b583b8e042e9/16w0pk9k1I.json',
+      title: 'Save and Prosper',
       description:
-          'Learn how you can save money while contributing to meaningful charitable causes with Abugida.',
+          'Discover how Ekub makes saving effortless while building a brighter future for you and your community.',
     ),
     OnboardingContent(
-      imagePath: 'https://lottie.host/e47707ba-2981-4d0d-88d8-fb05a1ce2db5/snjbC2hNhc.json',
-      title: 'Together for a Better World',
+      imagePath:
+          'https://lottie.host/e47707ba-2981-4d0d-88d8-fb05a1ce2db5/snjbC2hNhc.json',
+      title: 'Grow Together with Ekub',
       description:
-          'Experience the power of collaboration as we work together to support charity and achieve success.',
+          'Experience the power of collective saving and growth by joining the Ekub family.',
     ),
   ];
 
@@ -42,8 +45,7 @@ class OnboardingController extends GetxController {
     box.write('onboardingCompleted', true);
     Future.delayed(Duration(milliseconds: 300), () {
       Get.offAll(() => LoginPage(), transition: Transition.rightToLeft);
-    })
-        .whenComplete(() => _isNavigating = false);
+    }).whenComplete(() => _isNavigating = false);
   }
 
   Widget buildDotIndicator(int index) {
