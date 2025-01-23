@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class EkubPage extends StatefulWidget {
   static String route = 'ekub-page';
+
   @override
   _EkubPageState createState() => _EkubPageState();
 }
@@ -12,6 +13,7 @@ class _EkubPageState extends State<EkubPage>
 
   String? _selectedAmount = '1,000 birr';
   String? _selectedEkubType = 'Personal';
+  int _currentMoney = 10000; // Total current money in the Ekub
 
   @override
   void initState() {
@@ -112,6 +114,26 @@ class _EkubPageState extends State<EkubPage>
     );
   }
 
+  void _addMoney(int amount) {
+    setState(() {
+      _currentMoney += amount;
+    });
+  }
+
+  void _deductMoney(int amount) {
+    setState(() {
+      if (_currentMoney - amount >= 0) {
+        _currentMoney -= amount;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Not enough money to deduct!'),
+          ),
+        );
+      }
+    });
+  }
+
   Widget _buildDetailCard(String title, String subtitle,
       {bool hasEditIcon = false, VoidCallback? onEdit}) {
     return Card(
@@ -173,6 +195,7 @@ class _EkubPageState extends State<EkubPage>
                     hasEditIcon: true, onEdit: _editEkubType),
                 _buildDetailCard('Ekub Amount', _selectedAmount!,
                     hasEditIcon: true, onEdit: _editAmount),
+                _buildDetailCard('Current Money', '\$_currentMoney birr'),
                 _buildDetailCard('Announcement Date', 'Jan 14, 2024'),
                 _buildDetailCard('Current Users', '300 Users'),
               ],
@@ -251,40 +274,19 @@ class _EkubPageState extends State<EkubPage>
                     ),
                   ),
                   SizedBox(height: 16),
-                  Text('Select Ekub Type',
+                  Text('Add or Deduct Money',
                       style: TextStyle(fontWeight: FontWeight.bold)),
                   SizedBox(height: 8),
-                  Column(
+                  Row(
                     children: [
-                      RadioListTile<String>(
-                        title: Text('Business'),
-                        value: 'Business',
-                        groupValue: _selectedEkubType,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedEkubType = value;
-                          });
-                        },
+                      ElevatedButton(
+                        onPressed: () => _addMoney(500),
+                        child: Text('+500 birr'),
                       ),
-                      RadioListTile<String>(
-                        title: Text('Personal'),
-                        value: 'Personal',
-                        groupValue: _selectedEkubType,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedEkubType = value;
-                          });
-                        },
-                      ),
-                      RadioListTile<String>(
-                        title: Text('Property'),
-                        value: 'Property',
-                        groupValue: _selectedEkubType,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedEkubType = value;
-                          });
-                        },
+                      SizedBox(width: 16),
+                      ElevatedButton(
+                        onPressed: () => _deductMoney(500),
+                        child: Text('-500 birr'),
                       ),
                     ],
                   ),

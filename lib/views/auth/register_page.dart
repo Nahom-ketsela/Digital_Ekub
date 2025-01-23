@@ -12,30 +12,41 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
+  // Local storage and Firebase authentication instance
   final GetStorage _storage = GetStorage();
-  final FirebaseAuth _auth = FirebaseAuth.instance; 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // State variables for password visibility and form validation
   bool _obscurePassword = true;
   final _formKey = GlobalKey<FormState>();
+
+  // Controllers for user input fields
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+
+  // Error messages for validation feedback
   String? _emailError;
   String? _passwordError;
-  String? _firebaseError; 
+  String? _firebaseError;
 
   @override
   void dispose() {
+    // Dispose of controllers to free resources
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
+  // Validates the email field for correct format and non-emptiness
   void _validateEmail() {
-    final email = _emailController.text;
+    final email = _emailController.text.trim();
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$');
     if (email.isEmpty) {
       setState(() {
         _emailError = 'Please enter your email';
       });
-    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+    } else if (!emailRegex.hasMatch(email)) {
       setState(() {
         _emailError = 'Please enter a valid email address';
       });
@@ -46,15 +57,19 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
+  // Validates the password field for strength and non-emptiness
   void _validatePassword() {
-    final password = _passwordController.text;
+    final password = _passwordController.text.trim();
+    final passwordRegex = RegExp(
+        r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@\$!%*?&])[A-Za-z\d@\$!%*?&]{8,}\$');
     if (password.isEmpty) {
       setState(() {
         _passwordError = 'Please enter your password';
       });
-    } else if (password.length < 6) {
+    } else if (!passwordRegex.hasMatch(password)) {
       setState(() {
-        _passwordError = 'Password must be at least 6 characters long';
+        _passwordError =
+            'Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character';
       });
     } else {
       setState(() {
@@ -63,6 +78,7 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
+  // Checks if the form is valid based on current input and validation results
   bool get _isFormValid {
     return _emailError == null &&
         _passwordError == null &&
@@ -70,27 +86,31 @@ class _SignupPageState extends State<SignupPage> {
         _passwordController.text.isNotEmpty;
   }
 
+  // Handles user registration using Firebase authentication
   Future<void> _signup() async {
-    if (_isFormValid) {
-      try {
-        // Firebase Authentication: Create user
-        UserCredential userCredential =
-            await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
+    if (!_isFormValid) {
+      return; // Exit if form is invalid
+    }
 
-        // Save user data locally
-        _storage.write('email', userCredential.user?.email);
-        _storage.write('loggedIn', true);
+    try {
+      // Firebase Authentication: Create user
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
-        // Navigate to the main screen
-        Get.toNamed('mainscreen-page');
-      } catch (e) {
-        setState(() {
-          _firebaseError = e.toString();
-        });
-      }
+      // Save user data locally upon successful registration
+      _storage.write('email', userCredential.user?.email);
+      _storage.write('loggedIn', true);
+
+      // Navigate to the main screen
+      Get.toNamed('mainscreen-page');
+    } catch (e) {
+      // Set the Firebase error message for display
+      setState(() {
+        _firebaseError = e.toString();
+      });
     }
   }
 

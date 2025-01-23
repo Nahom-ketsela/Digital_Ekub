@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ekub/core/constants/colors.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   static String route = 'login-page';
@@ -13,15 +13,21 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  // Local storage and Firebase authentication instance
   final GetStorage _storage = GetStorage();
-  final FirebaseAuth _auth = FirebaseAuth.instance; 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // State variables for password visibility and form validation
   bool _obscurePassword = true;
   final _formKey = GlobalKey<FormState>();
   bool _emailTouched = false;
   bool _passwordTouched = false;
+
+  // Controllers for user input fields
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+
+  // Error messages for validation feedback
   String? _emailError;
   String? _passwordError;
   String? _firebaseError; // To display Firebase errors
@@ -29,37 +35,39 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    // Listener to validate email whenever the user types
     _emailController.addListener(() {
-      setState(() {
-        _emailTouched = true;
-        _validateEmail();
-      });
+      _emailTouched = true;
+      _validateEmail();
     });
+    // Listener to validate password whenever the user types
     _passwordController.addListener(() {
-      setState(() {
-        _passwordTouched = true;
-        _validatePassword();
-      });
+      _passwordTouched = true;
+      _validatePassword();
     });
   }
 
   @override
   void dispose() {
+    // Dispose of controllers to free resources
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-void _validateEmail() {
-    final email = _emailController.text.trim(); // Trim spaces
+  // Validates the email field for correct format and non-emptiness
+  void _validateEmail() {
+    final email = _emailController.text.trim();
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$');
     if (_emailTouched) {
       if (email.isEmpty) {
         setState(() {
-          _emailError = 'Please enter your email';
+          _emailError = 'Email is required.';
         });
-      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+      } else if (!emailRegex.hasMatch(email)) {
         setState(() {
-          _emailError = 'Please enter a valid email address';
+          _emailError = 'Enter a valid email address.';
         });
       } else {
         setState(() {
@@ -69,40 +77,20 @@ void _validateEmail() {
     }
   }
 
-  Future<void> _loginWithFirebase() async {
-    try {
-      final email = _emailController.text.trim(); // Trim spaces
-      final password = _passwordController.text;
-      final UserCredential userCredential =
-          await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      // Save user data locally
-      _storage.write('email', userCredential.user?.email);
-      _storage.write('loggedIn', true);
-
-      // Navigate to the main screen
-      Get.toNamed('mainscreen-page');
-    } catch (e) {
-      setState(() {
-        _firebaseError = e.toString(); // Display the Firebase error
-      });
-    }
-  }
-
-
+  // Validates the password field for strength and non-emptiness
   void _validatePassword() {
-    final password = _passwordController.text;
+    final password = _passwordController.text.trim();
+    final passwordRegex = RegExp(
+        r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@\$!%*?&])[A-Za-z\d@\$!%*?&]{8,}\$');
     if (_passwordTouched) {
       if (password.isEmpty) {
         setState(() {
-          _passwordError = 'Please enter your password';
+          _passwordError = 'Password is required.';
         });
-      } else if (password.length < 6) {
+      } else if (!passwordRegex.hasMatch(password)) {
         setState(() {
-          _passwordError = 'Password must be at least 6 characters long';
+          _passwordError =
+              'Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character.';
         });
       } else {
         setState(() {
@@ -112,14 +100,59 @@ void _validateEmail() {
     }
   }
 
+  // Handles login using Firebase authentication
+  Future<void> _loginWithFirebase() async {
+    if (!_formKey.currentState!.validate()) {
+      return; // Exit if form is invalid
+    }
+
+    try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Save user data locally upon successful login
+      _storage.write('email', userCredential.user?.email);
+      _storage.write('loggedIn', true);
+
+      // Navigate to the main screen
+      Get.toNamed('mainscreen-page');
+    } catch (e) {
+      // Set the Firebase error message for display
+      setState(() {
+        _firebaseError = _getFirebaseErrorMessage(e);
+      });
+    }
+  }
+
+  // Maps FirebaseAuthException codes to user-friendly messages
+  String _getFirebaseErrorMessage(dynamic error) {
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'user-not-found':
+          return 'No account found with this email.';
+        case 'wrong-password':
+          return 'Incorrect password. Please try again.';
+        case 'network-request-failed':
+          return 'Network error. Please check your internet connection.';
+        default:
+          return 'An unexpected error occurred. Please try again later.';
+      }
+    }
+    return 'An unexpected error occurred.';
+  }
+
+  // Checks if the form is valid based on current input and validation results
   bool get _isFormValid {
     return _emailError == null &&
         _passwordError == null &&
         _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty;
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +182,7 @@ void _validateEmail() {
                                   child: Column(
                                     children: [
                                       Text(
-                                        'Welcome to እንደግ',
+                                        'Welcome to Digital ዕቁብ',
                                         style: TextStyle(
                                             fontSize: 28,
                                             fontWeight: FontWeight.w500),
@@ -211,6 +244,8 @@ void _validateEmail() {
                                       style: TextStyle(
                                         fontSize: 16,
                                       ),
+                                      autovalidateMode:
+                                          AutovalidateMode.onUserInteraction,
                                     ),
                                     Positioned(
                                       left: 10,
@@ -275,6 +310,8 @@ void _validateEmail() {
                                       style: TextStyle(
                                         fontSize: 16,
                                       ),
+                                      autovalidateMode:
+                                          AutovalidateMode.onUserInteraction,
                                     ),
                                     Positioned(
                                       left: 10,
