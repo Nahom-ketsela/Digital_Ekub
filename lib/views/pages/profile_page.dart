@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatefulWidget {
   static String route = 'profile-page';
@@ -9,20 +9,21 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final GetStorage storage = GetStorage();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
+  final TextEditingController _newPasswordController = TextEditingController();
 
   bool _isEmailEditable = false;
-  bool _isPasswordEditable = false;
 
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController(text: storage.read('email') ?? '');
+    final user = _auth.currentUser;
+    _emailController = TextEditingController(text: user?.email ?? '');
     _passwordController =
-        TextEditingController(text: storage.read('password') ?? '');
+        TextEditingController(); // Password won't be pre-filled
   }
 
   @override
@@ -45,29 +46,27 @@ class _ProfilePageState extends State<ProfilePage> {
                 label: 'Email',
                 controller: _emailController,
                 isEditable: _isEmailEditable,
-                onEditToggle: () {
+                onEditToggle: () async {
                   setState(() {
                     _isEmailEditable = !_isEmailEditable;
-                    if (!_isEmailEditable) {
-                      storage.write('email', _emailController.text);
-                    }
                   });
+                  if (!_isEmailEditable) {
+                    try {
+                      await _auth.currentUser
+                          ?.updateEmail(_emailController.text);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Email updated successfully!')),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to update email: $e')),
+                      );
+                    }
+                  }
                 },
               ),
               SizedBox(height: 20),
-              _buildProfileField(
-                label: 'Password',
-                controller: _passwordController,
-                isEditable: _isPasswordEditable,
-                onEditToggle: () {
-                  setState(() {
-                    _isPasswordEditable = !_isPasswordEditable;
-                    if (!_isPasswordEditable) {
-                      storage.write('password', _passwordController.text);
-                    }
-                  });
-                },
-              ),
+              _buildPasswordChangeButton(),
             ],
           ),
         ),
@@ -99,7 +98,6 @@ class _ProfilePageState extends State<ProfilePage> {
               child: TextFormField(
                 controller: controller,
                 enabled: isEditable,
-                obscureText: label == 'Password' ? true : false,
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.black87,
@@ -131,6 +129,65 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildPasswordChangeButton() {
+    return ElevatedButton(
+      onPressed: _changePassword,
+      child: Text('Change Password'),
+    );
+  }
+
+  void _changePassword() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Change Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'Current Password'),
+            ),
+            TextFormField(
+              controller: _newPasswordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'New Password'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                final user = _auth.currentUser;
+                final cred = EmailAuthProvider.credential(
+                  email: user!.email!,
+                  password: _passwordController.text,
+                );
+                await user.reauthenticateWithCredential(cred);
+                await user.updatePassword(_newPasswordController.text);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Password updated successfully!')),
+                );
+                Navigator.of(context).pop();
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to update password: $e')),
+                );
+              }
+            },
+            child: Text('Update'),
+          ),
+        ],
+      ),
     );
   }
 }
