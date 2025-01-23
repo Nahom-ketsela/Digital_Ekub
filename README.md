@@ -31,11 +31,11 @@ Digital Ekub is a mobile app that brings the traditional Ethiopian savings syste
 ## How to Run the App
 1. **Clone the Repository**: 
    ```
-   git clone <repository-url>
+   git clone https://github.com/Nahom-ketsela/Digital_Ekub.git
    ```
 2. **Navigate to the Project Directory**: 
    ```
-   cd <project-directory>
+   cd <your-project-directory>
    ```
 3. **Install Dependencies**: 
    Make sure you have Flutter installed. Then run:
@@ -65,7 +65,7 @@ Digital Ekub is a mobile app that brings the traditional Ethiopian savings syste
 
 ## FAQs
 **Q: Is the app free?**
-A: Yes, but some payment methods may have small fees.
+A: Yes.
 
 **Q: What if someone misses a payment?**
 A: Group rules handle missed payments, and members are notified.
@@ -73,8 +73,6 @@ A: Group rules handle missed payments, and members are notified.
 **Q: How is the payout decided?**
 A: The group organizer or rules manage the process.
 
-## Support
-For help or feedback, contact us at [support email] or visit [website link].
 
 ---
 Thank you for using Digital Ekub and making savings easy!
